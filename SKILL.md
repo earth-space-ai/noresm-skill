@@ -31,7 +31,7 @@ tags:
 > Skill author: Koutian Wu (ktwu01@gmail.com)
 > Skill version: 0.1.0-scaffold
 
-**What NorESM does:** Provides a coupled atmosphere–ocean–land–sea-ice climate model with Norwegian-developed components for ocean dynamics (BLOM, derived from MICOM, an isopycnal-coordinate ocean), ocean biogeochemistry (HAMOCC / iHAMOCC), and aerosols (OsloAero). The host framework is CESM (CIME-based case control, CMEPS coupler, CAM atmosphere, CTSM land, CICE sea-ice). Used by Norwegian climate research and contributes to CMIP.
+**What NorESM does:** Provides a coupled atmosphere–ocean–land–sea-ice climate model with Norwegian-developed components for ocean dynamics (BLOM, derived from MICOM, an isopycnal-coordinate ocean), ocean biogeochemistry (HAMOCC / iHAMOCC), and aerosols (OsloAero). The host framework is CESM-derived: CIME-based case control, **MCT coupler** (CMEPS is a CESM2.2+/CESM3 thing, not yet the NorESM2 production standard), **CLM5** as the land component (a specific tag of CTSM, so look for `user_nl_clm` not `user_nl_ctsm`), CAM atmosphere, CICE sea-ice. Used by Norwegian climate research and contributes to CMIP.
 
 **Who this skill is for:** Researchers running CMIP-class climate experiments with NorESM, developers porting NorESM to a new machine, and anyone needing to understand which parts are NorESM-specific vs inherited from CESM.
 
@@ -108,6 +108,14 @@ This is a **thin meta-repo**. The actual model code (CAM, CLM/CTSM, BLOM, CICE, 
 | reference/osloaero.md | Aerosol scheme |
 | reference/debugging.md | NorESM-specific issues |
 
+## Critical agent gotchas (Gemini-reviewed)
+
+- **NorESM grids are not CESM grids.** BLOM uses ocean-grid aliases like `tn14`, `tn21`. The CESM-equivalent grid string `f19_g17` becomes something like `f19_tn14` for NorESM. Verify in the NorESM compset XML before reusing CESM grid strings.
+- **Compset names need a resolution tier.** Bare `N1850` is incomplete in production use; standard NorESM2 uses resolution-tagged compsets (look at the released compset list for the `_LM`, `_MM`, `_HH` etc. variants).
+- **`Externals.cfg` (or release-named variant) is the production manifest.** `Externals_continuous_development.cfg` may pull unstable component versions; only use it deliberately.
+- **Input data is hosted on Norwegian infrastructure** (NIRD/Sigma2), not the standard NCAR mirrors. `check_input_data` may fail without configured server paths for NorESM-specific files (aerosol forcing, ocean initial conditions, etc.).
+- **`user_nl_clm` is the file** for land-side namelist customization (since the land tag is CLM5).
+
 ## Status
 
-Scaffold (v0.1.0-scaffold). Layout verified against the cloned NorESM superproject. Operational depth being filled in.
+Scaffold (v0.1.0-scaffold). Layout verified against the cloned NorESM superproject, with Gemini critique pass on 2026-05-09 to correct coupler (MCT not CMEPS), land-component naming (CLM5 not CTSM), and add NorESM-specific grid/data caveats. Operational depth being filled in.
